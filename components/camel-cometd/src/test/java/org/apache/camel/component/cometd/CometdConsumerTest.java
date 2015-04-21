@@ -66,7 +66,6 @@ public class CometdConsumerTest {
     @Before
     public void before() {
         when(bayeuxServerImpl.newLocalSession(anyString())).thenReturn(localSession);
-        when(bayeuxServerImpl.getLogger()).thenReturn(logger);
         when(bayeuxServerImpl.getChannel(anyString())).thenReturn(serverChannel);
 
         testObj = new CometdConsumer(endpoint, processor);
