@@ -16,9 +16,6 @@
  */
 package org.apache.camel.component.cometd;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -29,6 +26,7 @@ import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.server.BayeuxServerImpl;
 import org.eclipse.jetty.util.log.Logger;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,8 +34,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,8 +52,7 @@ public class CometdConsumerTest {
     private CometdEndpoint endpoint;
     @Mock
     private Processor processor;
-    @Mock
-    private BayeuxServerImpl bayeuxServerImpl;
+    private BayeuxServerImpl bayeuxServerImpl = new BayeuxServerImpl();
     @Mock
     private LocalSession localSession;
     @Mock
@@ -64,9 +63,8 @@ public class CometdConsumerTest {
     private ServerSession remote;
 
     @Before
-    public void before() {
-        when(bayeuxServerImpl.newLocalSession(anyString())).thenReturn(localSession);
-        when(bayeuxServerImpl.getChannel(anyString())).thenReturn(serverChannel);
+    public void before() throws Exception {
+        bayeuxServerImpl.start();
 
         testObj = new CometdConsumer(endpoint, processor);
         testObj.setBayeux(bayeuxServerImpl);
@@ -78,9 +76,15 @@ public class CometdConsumerTest {
         when(remote.getAttribute(attributeKey)).thenReturn(MEMEBER_USER_NAME);
     }
 
+    @After
+    public void after() throws Exception {
+        bayeuxServerImpl.stop();
+    }
+
     @Test
     public void testStartDoesntCreateMultipleServices() throws Exception {
         // setup
+        when(endpoint.getPath()).thenReturn("/channelName");
         testObj.start();
         ConsumerService expectedService = testObj.getConsumerService();
         testObj.start();
@@ -95,15 +99,16 @@ public class CometdConsumerTest {
     @Test
     public void testSessionHeadersAdded() throws Exception {
         // setup
-        when(endpoint.areSessionHeadersEnabled()).thenReturn(true);
-        testObj.start();
         ServerMessage cometdMessage = mock(ServerMessage.class);
         Exchange exchange = mock(Exchange.class);
         when(endpoint.createExchange()).thenReturn(exchange);
+        when(endpoint.getPath()).thenReturn("/channelName");
+        when(endpoint.areSessionHeadersEnabled()).thenReturn(true);
+        testObj.start();
         ArgumentCaptor<Message> transferredMessage = ArgumentCaptor.forClass(Message.class);
 
         // act
-        testObj.getConsumerService().push(remote, "channelName", cometdMessage, "messageId");
+        testObj.getConsumerService().push(remote, cometdMessage);
 
         // verify
         verify(exchange).setIn(transferredMessage.capture());

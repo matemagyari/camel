@@ -89,7 +89,7 @@ public class CometdConsumer extends DefaultConsumer implements CometdProducerCon
             return new CometdBinding(bayeux, enableSessionHeaders);
         }
 
-        public void push(ServerSession remote, String channelName, ServerMessage cometdMessage, String messageId) throws Exception {
+        public void push(ServerSession remote, ServerMessage cometdMessage) throws Exception {
             Object data = null;
 
             Message message = binding.createCamelMessage(remote, cometdMessage, data);
@@ -100,7 +100,7 @@ public class CometdConsumer extends DefaultConsumer implements CometdProducerCon
             consumer.getProcessor().process(exchange);
 
             if (ExchangeHelper.isOutCapable(exchange)) {
-                ServerChannel channel = getBayeux().getChannel(channelName);
+                ServerChannel channel = getBayeux().getChannel(cometdMessage.getChannel());
                 ServerSession serverSession = getServerSession();
 
                 ServerMessage.Mutable outMessage = binding.createCometdMessage(channel, serverSession, exchange.getOut());

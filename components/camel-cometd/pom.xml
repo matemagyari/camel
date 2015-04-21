@@ -43,8 +43,7 @@
             org.apache.camel.spi.ComponentResolver;component=cometd,
             org.apache.camel.spi.ComponentResolver;component=cometds
         </camel.osgi.export.service>
-        <jetty-version>9.2.10.v20150310</jetty-version>
-        <cometd-version>3.0.4</cometd-version>
+        <jetty-version>${jetty9-version}</jetty-version>
     </properties>
 
     <dependencies>
@@ -80,7 +79,7 @@
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-server</artifactId>
-            <version>${cometd-version}</version>
+            <version>${cometd-java-server}</version>
         </dependency>
 
         <!-- Test Dependencies -->
